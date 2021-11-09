@@ -4,6 +4,8 @@ import { Text, View, Button, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 
+const SAVE_TOKEN_ENDPOINT = 'http://localhost:5080/token';
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -11,6 +13,17 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
+
+const registerDeviceToken = async token => {
+  const headers = {Accept: 'application/json', 'Content-Type': 'application/json'}
+  const body = JSON.stringify({token: {value: token}})
+  const method = 'POST'
+  console.log('REGISTER:::::::', token)
+  const res = await fetch(SAVE_TOKEN_ENDPOINT, {method, headers, body});
+  const parsed = await res.json();
+  console.log('POST_RES::', parsed);
+  return parsed;
+}
 
 export default function App() {
 
@@ -23,6 +36,9 @@ export default function App() {
     registerForPushNotificationsAsync().then(token => {
       console.log('TOKEN', token)
       setExpoPushToken(token)
+
+      registerDeviceToken(token)
+        .then(res => console.log('RES_FROM_FETCH', res))
     });
 
     // This listener is fired whenever a notification is received while the app is foregrounded
